@@ -18,18 +18,20 @@ class Oystercard
   end
 
   def in_journey?
-    @in_journey == true
+    !!@current_journey
   end
 
-  def touch_in(station)
+  def touch_in(station, journey_class)
     pre_touch_in_checks
+    fine = journey_class.new.fare if @current_journey
+    deduct(fine) if fine
+    @current_journey = journey_class.new(station)
     @entry_station = station
-    @in_journey = true
   end
 
-  def touch_out(station, journey_class)
+  def touch_out(station)
     @exit_station = station
-    @in_journey = journey_class.new(@entry_station, station)
+    @current_journey.finish(station)
     deduct(MIN_CHARGE)
     store_journey_history
     @in_journey = false
@@ -56,7 +58,7 @@ class Oystercard
   end
 
   def pre_touch_in_checks
-    deduct(FINE) if in_journey?
+    # deduct(FINE) if in_journey?
     fail "Insufficient funds - minimum balance is #{BALANCE_MIN}" if @balance < BALANCE_MIN
   end
 

@@ -7,16 +7,15 @@ describe Oystercard do
   let(:station) { double "a station" }
   let(:station2) { double "a second station" }
   #let(:card_in_journey) { double("a card", in_journey?: true) }
-  let(:journey) { class_double("Journey").as_stubbed_const }
 
   let(:card_touched_in) do
     card.top_up(10)
-    card.touch_in(station)
+    card.touch_in(station, Journey)
     card
   end
 
   let(:card_touched_out) do
-    card_touched_in.touch_out(station2, journey)
+    card_touched_in.touch_out(station2)
     card_touched_in
   end
 
@@ -42,7 +41,7 @@ describe Oystercard do
     it 'prevents touching in when balance is below one pound' do
       minimum_balance = Oystercard::BALANCE_MIN
       message = "Insufficient funds - minimum balance is #{minimum_balance}"
-      expect { card.touch_in(station) }.to raise_error message
+      expect { card.touch_in(station, Journey) }.to raise_error message
     end
 
     it 'correctly stores the entry station' do
@@ -52,11 +51,11 @@ describe Oystercard do
     context 'when in journey' do
       before :each do
         card.top_up(10)
-        card.touch_in(station)
+        card.touch_in(station, Journey)
       end
 
       it 'charges the card with a fine' do
-        expect {card.touch_in(station)}.to change{card.balance}.by -Oystercard::FINE
+        expect {card.touch_in(station, Journey)}.to change{card.balance}.by -Oystercard::FINE
       end
     end
   end
@@ -70,7 +69,7 @@ describe Oystercard do
 
     it 'deducts the minimum fare' do
       card_touched_in
-      expect { card_touched_in.touch_out(station, journey) }.to change { card.balance }.by(-Oystercard::MIN_CHARGE)
+      expect { card_touched_in.touch_out(station) }.to change { card.balance }.by(-Oystercard::MIN_CHARGE)
     end
 
     it 'correctly stores the exit station' do
