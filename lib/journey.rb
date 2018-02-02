@@ -8,7 +8,7 @@ class Journey
   end
 
   def fare
-    complete? ? FINE : MIN_CHARGE
+    complete? ? MIN_CHARGE : FINE
   end
 
   def finish(station)
@@ -18,7 +18,7 @@ class Journey
   private
 
   def complete?
-    !(@entry_station && @exit_station)
+    @entry_station && @exit_station
   end
 
 

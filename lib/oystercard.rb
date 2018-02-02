@@ -8,43 +8,33 @@ class Oystercard
   BALANCE_MIN = 1
   MIN_CHARGE = 3
 
-  attr_reader :balance, :entry_station, :exit_station, :journey_history
+  attr_reader :balance, :journey_history, :current_journey
 
-  def initialize(balance = 0, in_journey = nil)
+  def initialize(balance = 0, journey_class = Journey)
     @balance = balance
-    @in_journey = in_journey
     @journey_history = []
-
+    @journey_class = Journey
   end
 
   def in_journey?
     !!@current_journey
   end
 
-  def touch_in(station, journey_class)
-    pre_touch_in_checks
-    fine = journey_class.new.fare if @current_journey
-    deduct(fine) if fine
-    @current_journey = journey_class.new(station)
-    @entry_station = station
+  def touch_in(station)
+    pre_touch_in_checks(@journey_class)
+    @current_journey = @journey_class.new(station)
   end
 
   def touch_out(station)
-    @exit_station = station
     @current_journey.finish(station)
-    deduct(MIN_CHARGE)
+    deduct(@current_journey.fare)
     store_journey_history
-    @in_journey = false
-    @entry_station, @exit_station = nil, nil
+    @current_journey = nil
   end
 
   def top_up(amount)
     pre_top_up_checks(amount)
     @balance += amount
-  end
-
-  def store_journey_history
-    @journey_history << @in_journey
   end
 
   private
@@ -57,9 +47,13 @@ class Oystercard
     fail "Error - maximum balance is #{BALANCE_LIMIT} pounds" if (@balance + amount > BALANCE_LIMIT)
   end
 
-  def pre_touch_in_checks
-    # deduct(FINE) if in_journey?
+  def pre_touch_in_checks(journey_class)
+    deduct(journey_class.new.fare) if @current_journey
     fail "Insufficient funds - minimum balance is #{BALANCE_MIN}" if @balance < BALANCE_MIN
+  end
+
+  def store_journey_history
+    @journey_history << @current_journey
   end
 
 end
