@@ -3,10 +3,8 @@ require_relative 'journey'
 
 class Oystercard
 
-  FINE = 6
   BALANCE_LIMIT = 90
   BALANCE_MIN = 1
-  MIN_CHARGE = 3
 
   attr_reader :balance, :journey_history, :current_journey
 
@@ -29,7 +27,6 @@ class Oystercard
     @current_journey.finish(station)
     deduct(@current_journey.fare)
     store_journey_history
-    @current_journey = nil
   end
 
   def top_up(amount)
@@ -54,6 +51,7 @@ class Oystercard
 
   def store_journey_history
     @journey_history << @current_journey
+    @current_journey = nil
   end
 
 end
